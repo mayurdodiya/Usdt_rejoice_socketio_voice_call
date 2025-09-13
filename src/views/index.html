@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+
+  <body>
+    <h1>Group Chat</h1>
+    <br />
+    <br />
+
+    <!-- <input id="receiver_id_inp" placeholder=" Type your message" />
+  <button onclick="receiverIdSet()">receiverid</button> -->
+    <br />
+    <input id="receiver_group_inp" placeholder=" Type your message" />
+    <button onclick="receiverGroup()">receiver Group</button>
+    <br />
+
+    <input id="message_input" placeholder=" Type your message" />
+    <button onclick="sendMessage()">Send Message</button>
+
+    <h1>------------------</h1>
+    <h1>Chat history</h1>
+    <div id="chat_history">
+      <ul id="chat_history_list"></ul>
+    </div>
+  </body>
+
+  <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+
+    const token = localStorage.getItem("token");
+    console.log(token, "---token");
+
+    // 1. just for connection checking
+    socket.on("connect", () => {
+      console.log("Connected to server");
+    });
+
+    // 11. chat btn ni on click pr aa event thse
+    socket.emit("user_connected", {
+      // socketId: socket.id,
+      token: token,
+      receiverGroup: localStorage.getItem("receiverGroup"),
+    });
+
+    socket.on("user_connection_data", (data) => {
+      console.log("User connection data:", data);
+      localStorage.setItem("userId", data.userId);
+    });
+
+    // function receiverIdSet() {
+    //     // localStorage.setItem("senderId", localStorage.getItem("userId"));
+    //     localStorage.setItem("receiverId", document.getElementById("receiver_id_inp").value);
+    // }
+    function receiverGroup() {
+      // localStorage.setItem("senderId", localStorage.getItem("userId"));
+      localStorage.setItem("receiverGroup", document.getElementById("receiver_group_inp").value);
+    }
+
+    function sendMessage() {
+      socket.emit("new_message", {
+        senderId: localStorage.getItem("userId"),
+        // receiverId: localStorage.getItem("receiverId"),
+        receiverGroup: localStorage.getItem("receiverGroup"),
+        message: document.getElementById("message_input").value,
+      });
+    }
+
+    socket.on("receiveMessage", (data) => {
+      console.log("New message received:", data);
+      const chatHistoryList = document.getElementById("chat_history_list");
+      const listItem = document.createElement("li");
+      listItem.textContent = `From: ${data.senderId}, Message: ${data.message}`;
+      chatHistoryList.appendChild(listItem);
+    });
+  </script>
+</html>
